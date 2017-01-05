@@ -23,6 +23,7 @@ nv.models.discreteBarChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , staggerLabels = false
+		, reduceXTicks = false
         , wrapLabels = false
         , rotateLabels = 0
         , x
@@ -149,6 +150,17 @@ nv.models.discreteBarChart = function() {
                 .attr('height', 16)
                 .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
 
+			var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
+            xTicks
+				.selectAll('line, text')
+				.style('opacity', 1);
+            if (reduceXTicks)
+				xTicks
+					.filter(function(d,i) {
+						return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
+					})
+					.selectAll('text, line')
+					.style('opacity', 0);
             // Setup Axes
             if (showXAxis) {
                 xAxis
@@ -242,6 +254,7 @@ nv.models.discreteBarChart = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
 	showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
+		reduceXTicks: {get: function(){return reduceXTicks;}, set: function(_){reduceXTicks=_;}},
         rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
         wrapLabels:  {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
         showXAxis: {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},

@@ -305,7 +305,10 @@ nv.models.multiBarChart = function() {
                     .scale(y)
                     ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
-
+				
+				var yTicks = g.select('.nv-y.nv-axis > g').selectAll('text');
+                yTicks.style('text-anchor', 'middle');
+				
                 g.select('.nv-y.nv-axis')
                     .call(yAxis);
             }

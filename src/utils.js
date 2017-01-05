@@ -212,7 +212,7 @@ d3.selection.prototype.watchTransition = function(renderWatch){
     return renderWatch.transition.apply(renderWatch, args);
 };
 
-
+nv.utils.transitionReady = false;
 /*
 Helper object to watch when d3 has rendered something
 */
@@ -223,6 +223,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
 
     var _duration = duration !== undefined ? duration : 250;
     var renderStack = [];
+	nv.utils.transitionReady = false;
     var self = this;
 
     this.models = function(models) {
@@ -296,6 +297,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
         if (renderStack.every( function(d){ return d.__rendered; } )) {
             renderStack.forEach( function(d){ d.__rendered = false; });
             dispatch.renderEnd.apply(this, arguments);
+			nv.utils.transitionReady = true;
         }
     }
 
