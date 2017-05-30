@@ -1,4 +1,4 @@
-/* nvd3 version 1.8.5 (https://github.com/novus/nvd3) 2016-12-01 */
+/* nvd3 version 1.8.5 (https://github.com/novus/nvd3) 2017-05-30 */
 (function(){
 
 // set up main nv object
@@ -15,7 +15,7 @@ nv.dom = {}; //DOM manipulation functions
 
 // Node/CommonJS - require D3
 if (typeof(module) !== 'undefined' && typeof(exports) !== 'undefined' && typeof(d3) == 'undefined') {
-    d3 = require('d3');
+    d3 = require('./d3');
 }
 
 nv.dispatch = d3.dispatch('render_start', 'render_end');
@@ -1088,7 +1088,7 @@ d3.selection.prototype.watchTransition = function(renderWatch){
     return renderWatch.transition.apply(renderWatch, args);
 };
 
-
+nv.utils.transitionReady = false;
 /*
 Helper object to watch when d3 has rendered something
 */
@@ -1099,6 +1099,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
 
     var _duration = duration !== undefined ? duration : 250;
     var renderStack = [];
+	nv.utils.transitionReady = false;
     var self = this;
 
     this.models = function(models) {
@@ -1172,6 +1173,7 @@ nv.utils.renderWatch = function(dispatch, duration) {
         if (renderStack.every( function(d){ return d.__rendered; } )) {
             renderStack.forEach( function(d){ d.__rendered = false; });
             dispatch.renderEnd.apply(this, arguments);
+			nv.utils.transitionReady = true;
         }
     }
 
@@ -4220,6 +4222,7 @@ nv.models.discreteBarChart = function() {
         , showYAxis = true
         , rightAlignYAxis = false
         , staggerLabels = false
+		, reduceXTicks = false
         , wrapLabels = false
         , rotateLabels = 0
         , x
@@ -4346,6 +4349,17 @@ nv.models.discreteBarChart = function() {
                 .attr('height', 16)
                 .attr('x', -x.rangeBand() / (staggerLabels ? 1 : 2 ));
 
+			var xTicks = g.select('.nv-x.nv-axis > g').selectAll('g');
+            xTicks
+				.selectAll('line, text')
+				.style('opacity', 1);
+            if (reduceXTicks)
+				xTicks
+					.filter(function(d,i) {
+						return i % Math.ceil(data[0].values.length / (availableWidth / 100)) !== 0;
+					})
+					.selectAll('text, line')
+					.style('opacity', 0);
             // Setup Axes
             if (showXAxis) {
                 xAxis
@@ -4439,6 +4453,7 @@ nv.models.discreteBarChart = function() {
         height:     {get: function(){return height;}, set: function(_){height=_;}},
 	showLegend: {get: function(){return showLegend;}, set: function(_){showLegend=_;}},
         staggerLabels: {get: function(){return staggerLabels;}, set: function(_){staggerLabels=_;}},
+		reduceXTicks: {get: function(){return reduceXTicks;}, set: function(_){reduceXTicks=_;}},
         rotateLabels:  {get: function(){return rotateLabels;}, set: function(_){rotateLabels=_;}},
         wrapLabels:  {get: function(){return wrapLabels;}, set: function(_){wrapLabels=!!_;}},
         showXAxis: {get: function(){return showXAxis;}, set: function(_){showXAxis=_;}},
@@ -8680,7 +8695,10 @@ nv.models.multiBarChart = function() {
                     .scale(y)
                     ._ticks( nv.utils.calcTicksY(availableHeight/36, data) )
                     .tickSize( -availableWidth, 0);
-
+				
+				var yTicks = g.select('.nv-y.nv-axis > g').selectAll('text');
+                yTicks.style('text-anchor', 'middle');
+				
                 g.select('.nv-y.nv-axis')
                     .call(yAxis);
             }
